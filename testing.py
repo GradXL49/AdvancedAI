@@ -1,4 +1,11 @@
+"""
+Grady Landers
+Advanced AI Project
+Custom GAN model testing
+"""
+
 import torch
+from math import sqrt
 from matplotlib import pyplot as plt
 
 # load models
@@ -13,21 +20,25 @@ print(device)
 device = torch.device(device)
 
 # hyperparameter settings
+n = 1
 batch_size = 64
-n = 10
+sqr = sqrt(batch_size)
+if sqr / int(sqr) != 1:
+    sqr += 1
+sqr = int(sqr)
 
 # do testing
 print("\nDiscriminator results:")
 total_avg = 0
 for i in range(n):
-    # generate data
+    # generate images
     latent_space_samples = torch.randn(batch_size, 128).to(device)
     generated_samples = generator(latent_space_samples)
 
     # display for human
     cpu_samples = generated_samples.cpu().detach()
-    for j in range(64):
-        ax = plt.subplot(8, 8, j+1)
+    for j in range(batch_size):
+        ax = plt.subplot(sqr, sqr, j+1)
         plt.imshow(cpu_samples[j].reshape(28, 28), cmap="gray_r")
         plt.xticks([])
         plt.yticks([])
@@ -36,7 +47,7 @@ for i in range(n):
     # feed to discriminator and do testing
     confidence = str(discriminator(generated_samples))
     confidence = confidence.replace('tensor([', '').replace("], device='cuda:0', grad_fn=<SigmoidBackward0>)", '').replace('[', '').replace(']', '').replace('\n', '').replace('\t', '').replace(' ', '')
-    print("\nPass "+str(i)+" Confidences:\n"+confidence)
+    print("\nBatch "+str(i+1)+" Confidences:\n"+confidence)
     conf = confidence.split(',')
     avg = 0
     for c in conf:
